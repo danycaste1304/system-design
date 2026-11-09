@@ -36,7 +36,7 @@ class BalanceadorRoundRobin:
 
             servidor = self.servidores[asignado]
 
-            if servidor.puede_atender():
+            if servidor.health_check() and servidor.puede_atender():
                 servidor.atender(duracion)
                 self.siguiente = (asignado +1) % cantidad
                 return servidor.nombre
