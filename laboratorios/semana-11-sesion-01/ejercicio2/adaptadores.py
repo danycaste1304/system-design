@@ -105,6 +105,9 @@ class NotificadorEnMemoria(Notificador):
     def __init__(self):
         self.enviados = []
 
+    def notificar(self, estudiante, mensaje):
+        self.enviados.append((estudiante, mensaje))
+
 
 class AdaptadorDeMensajeria:
     """Atiende mensajes de un chat. El estudiante escribe, por ejemplo,
@@ -120,4 +123,13 @@ class AdaptadorDeMensajeria:
         # Si no, llama al caso de uso y responde
         # "Listo: reserva r-1, cancha-1, 2026-11-10 a las 18:00" o
         # "No se pudo reservar: hora ocupada" (con el motivo que sea).
-        raise NotImplementedError
+        partes = texto.split()
+        ayuda = "No entendi. Escribe: reservar <cancha> <fecha> <hora>"
+        if len(partes) != 4 or partes[0] != "reservar" or not partes[3].isdigit():
+            return ayuda
+        _, cancha, fecha, hora = partes
+        resultado = self.reservar_cancha.ejecutar(estudiante, cancha, fecha, int(hora))
+        if resultado["estado"] == "rechazada":
+            return "No se pudo reservar: " + resultado["motivo"]
+        reserva = resultado["reserva"]
+        return "Listo: reserva " + reserva.id + ", " + cancha + ", " + fecha + " a las " + texto_de_hora(int(hora))

@@ -38,4 +38,40 @@ Esta vez no hay codigo de partida. Corre las pruebas con:
 """
 
 from actividad import Publicacion
-# TODO: escribe aqui la clase OrdenadorDeFeed.
+
+
+class OrdenadorDeFeed:
+    def __init__(self, interacciones, equipos_de):
+        self.interacciones = interacciones
+        self.equipos_de = equipos_de
+
+    def puntaje(self, publicacion, estudiante, ahora):
+        puntos = self.interacciones.get(publicacion.id, 0) + 1
+        if publicacion.autor in self.equipos_de.get(estudiante, []):
+            puntos *= 3
+        horas = (ahora - publicacion.momento) // 60
+        return puntos / (1 + horas)
+
+    def ordenar(self, publicaciones, estudiante, ahora, cantidad):
+        pendientes = sorted(
+            publicaciones,
+            key=lambda p: (-self.puntaje(p, estudiante, ahora), -p.momento, p.id),
+        )
+        ordenadas = []
+        while pendientes and len(ordenadas) < cantidad:
+            indice = 0
+            if len(ordenadas) >= 2 and ordenadas[-1].autor == ordenadas[-2].autor:
+                for i, publicacion in enumerate(pendientes):
+                    if publicacion.autor != ordenadas[-1].autor:
+                        indice = i
+                        break
+            ordenadas.append(pendientes.pop(indice))
+        return ordenadas
+
+    def espacios_mas_reservados(self, reservas, ahora, cantidad):
+        conteos = {}
+        for espacio, momento in reservas:
+            if ahora - 10080 < momento <= ahora:
+                conteos[espacio] = conteos.get(espacio, 0) + 1
+        ordenados = sorted(conteos.items(), key=lambda par: (-par[1], par[0]))
+        return ordenados[:cantidad]
